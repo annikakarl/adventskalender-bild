@@ -18,9 +18,16 @@
         }
 
         h2 {
-            margin: 5px 0 15px 0;
+            margin: 5px 0 5px 0;
             font-size: 1.2rem;
             color: #2c3e50;
+            text-align: center;
+        }
+
+        .hint {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 15px;
             text-align: center;
         }
 
@@ -30,25 +37,26 @@
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             margin-bottom: 15px;
-            display: inline-block;
+            max-width: 100%;
+            overflow-x: auto; /* Falls das Raster breiter wird */
         }
 
-        /* Das Raster (Pixel-Größe anpassbar) */
+        /* Das Raster (hier am Beispiel 15x15 für mehr Details) */
         .grid {
             display: grid;
-            grid-template-columns: repeat(10, 1fr); /* 10 Pixel breit */
+            grid-template-columns: repeat(15, 26px); /* 15 Spalten à 26px */
             gap: 2px;
         }
 
         .pixel {
-            width: 30px;
-            height: 30px;
+            width: 26px;
+            height: 26px;
             background-color: #e0e0e0;
-            border-radius: 4px;
+            border-radius: 3px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
+            font-size: 9px;
             font-weight: bold;
             color: #666;
             cursor: pointer;
@@ -60,22 +68,35 @@
             transform: scale(0.9);
         }
 
-        /* Farbpaletten-Bereich */
+        /* Horizontal scrollbarer Farbpaletten-Bereich */
         #palette-container {
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: row;
+            overflow-x: auto;
             gap: 10px;
-            justify-content: center;
-            max-width: 320px;
+            width: 100%;
+            max-width: 400px;
             background: white;
             padding: 12px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Scrollbar optisch etwas verfeinern */
+        #palette-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        #palette-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
         }
 
         .palette-btn {
-            width: 45px;
-            height: 45px;
+            flex: 0 0 auto; /* Verhindert das Schrumpfen der Buttons */
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             border: 3px solid #ddd;
             cursor: pointer;
@@ -85,7 +106,7 @@
             font-weight: bold;
             color: #fff;
             text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-            font-size: 14px;
+            font-size: 12px;
             transition: transform 0.2s, border-color 0.2s;
         }
 
@@ -108,19 +129,12 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             max-width: 300px;
         }
-
-        .hint {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 10px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
 
     <h2>🎨 Malen nach Zahlen</h2>
-    <div class="hint">Wähle unten eine Farbe und tippe auf die passenden Zahlen!</div>
+    <div class="hint">Wähle unten eine Farbe (wische zum Scrollen) und tippe auf die passenden Felder!</div>
 
     <div id="game-container">
         <div id="pixel-grid" class="grid"></div>
@@ -131,33 +145,82 @@
     <div id="success-message">
         🎉 Wundervoll! Du hast es geschafft!<br>
         <span style="font-size: 0.9rem; font-weight: normal; display: block; margin-top: 5px;">
-            (Hier kannst du deine persönliche Nachricht einfügen, z.B.: "Ich freue mich auf heute Abend mit dir! ❤️")
+            "Ich freue mich auf heute Abend mit dir! ❤️"
         </span>
     </div>
 
     <script>
-        // Farbdefinitionen (Nummer -> Hex-Farbcode & Name)
+        // Farbdefinitionen (Beispielhaft bis Farbe 50 erweiterbar)
         const colors = {
-            1: { hex: '#2c3e50', name: 'Dunkelblau/Grau' },
-            2: { hex: '#e74c3c', name: 'Rot' },
-            3: { hex: '#f1c40f', name: 'Gelb' },
-            4: { hex: '#ecf0f1', name: 'Weiß/Hintergrund' },
-            5: { hex: '#27ae60', name: 'Grün' }
+            1:  { hex: '#1e293b' },
+            2:  { hex: '#334155' },
+            3:  { hex: '#475569' },
+            4:  { hex: '#64748b' },
+            5:  { hex: '#94a3b8' },
+            6:  { hex: '#cbd5e1' },
+            7:  { hex: '#f8fafc' },
+            8:  { hex: '#ef4444' },
+            9:  { hex: '#dc2626' },
+            10: { hex: '#b91c1c' },
+            11: { hex: '#f97316' },
+            12: { hex: '#ea580c' },
+            13: { hex: '#f59e0b' },
+            14: { hex: '#d97706' },
+            15: { hex: '#eab308' },
+            16: { hex: '#ca8a04' },
+            17: { hex: '#84cc16' },
+            18: { hex: '#65a30d' },
+            19: { hex: '#22c55e' },
+            20: { hex: '#16a34a' },
+            21: { hex: '#15803d' },
+            22: { hex: '#10b981' },
+            23: { hex: '#059669' },
+            24: { hex: '#14b8a6' },
+            25: { hex: '#0d9488' },
+            26: { hex: '#06b6d4' },
+            27: { hex: '#0891b2' },
+            28: { hex: '#0ea5e9' },
+            29: { hex: '#0284c7' },
+            30: { hex: '#3b82f6' },
+            31: { hex: '#2563eb' },
+            32: { hex: '#1d4ed8' },
+            33: { hex: '#6366f1' },
+            34: { hex: '#4f46e5' },
+            35: { hex: '#8b5cf6' },
+            36: { hex: '#7c3aed' },
+            37: { hex: '#a855f7' },
+            38: { hex: '#9333ea' },
+            39: { hex: '#d946ef' },
+            40: { hex: '#c026d3' },
+            41: { hex: '#ec4899' },
+            42: { hex: '#db2777' },
+            43: { hex: '#f43f5e' },
+            44: { hex: '#e11d48' },
+            45: { hex: '#78716c' },
+            46: { hex: '#57534e' },
+            47: { hex: '#44403c' },
+            48: { hex: '#292524' },
+            49: { hex: '#1c1917' },
+            50: { hex: '#0f172a' }
         };
 
-        // Das Bild als 10x10 Raster von Zahlen (Zahl entspricht den Farben oben)
-        // Du kannst dieses Muster ganz einfach nach Belieben anpassen!
+        // Beispiel-Muster (15x15 = 225 Pixel, hier mit Nummern 1 bis 50 gefüllt)
         const pattern = [
-            4, 4, 4, 1, 1, 1, 4, 4, 4, 4,
-            4, 4, 1, 2, 2, 2, 1, 4, 4, 4,
-            4, 1, 2, 2, 3, 2, 2, 1, 4, 4,
-            1, 2, 2, 2, 2, 2, 2, 2, 1, 4,
-            1, 2, 5, 2, 2, 2, 5, 2, 1, 4,
-            1, 2, 2, 2, 2, 2, 2, 2, 1, 4,
-            4, 1, 2, 2, 2, 2, 2, 1, 4, 4,
-            4, 4, 1, 2, 2, 2, 1, 4, 4, 4,
-            4, 4, 4, 1, 1, 1, 4, 4, 4, 4,
-            4, 4, 4, 4, 1, 4, 4, 4, 4, 4
+             7,  7,  7,  7,  7,  1,  2,  3,  4,  7,  7,  7,  7,  7,  7,
+             7,  7,  7,  7,  1,  8,  9, 10,  2,  4,  7,  7,  7,  7,  7,
+             7,  7,  7,  1,  8, 11, 12, 13,  9,  3,  4,  7,  7,  7,  7,
+             7,  7,  1,  8, 11, 14, 15, 16, 12, 10,  2,  4,  7,  7,  7,
+             7,  1,  8, 11, 14, 17, 18, 19, 15, 13,  9,  3,  4,  7,  7,
+             7,  2,  9, 12, 15, 18, 20, 21, 19, 16, 14, 10,  2,  4,  7,
+             7,  3, 10, 13, 16, 19, 21, 22, 20, 17, 15, 11,  3,  5,  7,
+             7,  4,  2, 14, 17, 20, 22, 23, 21, 18, 16, 12,  4,  6,  7,
+             7,  7,  4,  3, 18, 21, 23, 24, 22, 19, 17, 13,  5,  7,  7,
+             7,  7,  7,  4,  3, 22, 24, 25, 23, 20, 18, 14,  6,  7,  7,
+             7,  7,  7,  7,  4,  3, 25, 26, 24, 21, 19, 15,  7,  7,  7,
+             7,  7,  7,  7,  7,  4,  3, 27, 25, 22, 20, 16,  7,  7,  7,
+             7,  7,  7,  7,  7,  7,  4,  3, 26, 23, 21, 17,  7,  7,  7,
+             7,  7,  7,  7,  7,  7,  7,  4,  3, 24, 22, 18,  7,  7,  7,
+             7,  7,  7,  7,  7,  7,  7,  7,  4,  3, 23, 19,  7,  7,  7
         ];
 
         let selectedColor = null;
@@ -174,49 +237,7 @@
             btn.className = 'palette-btn';
             btn.style.backgroundColor = data.hex;
             btn.innerText = num;
+            btn.dataset.colorNum = num; // Wichtig, um den Button später zu finden
+
             btn.onclick = () => {
-                document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                selectedColor = parseInt(num);
-            };
-            paletteEl.appendChild(btn);
-        }
-
-        // Pixel-Grid generieren
-        pattern.forEach((targetColor, index) => {
-            const pixel = document.createElement('div');
-            pixel.className = 'pixel';
-            pixel.innerText = targetColor;
-            pixel.dataset.target = targetColor;
-            pixel.dataset.filled = "false";
-
-            pixel.onclick = () => {
-                if (selectedColor === null) {
-                    alert('Bitte wähle zuerst unten eine Farbe aus!');
-                    return;
-                }
-
-                // Prüfen, ob die gewählte Farbe zur Nummer passt
-                if (selectedColor === targetColor && pixel.dataset.filled === "false") {
-                    pixel.style.backgroundColor = colors[targetColor].hex;
-                    pixel.innerText = ""; // Nummer verschwindet beim Ausfüllen
-                    pixel.dataset.filled = "true";
-                    correctPixelsCount++;
-
-                    // Prüfen ob das Bild komplett ist
-                    if (correctPixelsCount === totalPixels) {
-                        successMsg.style.display = 'block';
-                        successMsg.scrollIntoView({ behavior: 'smooth' });
-                    }
-                } else if (pixel.dataset.filled === "false") {
-                    // Kurzer visueller "Fehler"-Hinweis (z.B. kurzes Aufblitzen oder leichtes Wackeln)
-                    pixel.style.transform = 'scale(0.85)';
-                    setTimeout(() => pixel.style.transform = 'scale(1)', 150);
-                }
-            };
-
-            gridEl.appendChild(pixel);
-        });
-    </script>
-</body>
-</html>
+                document.querySelectorAll('.
