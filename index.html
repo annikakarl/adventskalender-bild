@@ -240,4 +240,60 @@
             btn.dataset.colorNum = num; // Wichtig, um den Button später zu finden
 
             btn.onclick = () => {
-                document.querySelectorAll('.
+                document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedColor = parseInt(num);
+            };
+            paletteEl.appendChild(btn);
+        }
+
+        // Pixel-Grid generieren
+        pattern.forEach((targetColor, index) => {
+            const pixel = document.createElement('div');
+            pixel.className = 'pixel';
+            pixel.innerText = targetColor;
+            pixel.dataset.target = targetColor;
+            pixel.dataset.filled = "false";
+
+            pixel.onclick = () => {
+                if (selectedColor === null) {
+                    return;
+                }
+
+                if (selectedColor === targetColor && pixel.dataset.filled === "false") {
+                    pixel.style.backgroundColor = colors[targetColor].hex;
+                    pixel.innerText = "";
+                    pixel.dataset.filled = "true";
+                    correctPixelsCount++;
+
+                    // Prüfen, ob noch Pixel mit dieser Farbe übrig sind
+                    const remainingForThisColor = pattern.filter((val, idx) => {
+                        return val === selectedColor && gridEl.children[idx].dataset.filled === "false";
+                    }).length;
+
+                    // Wenn Farbe komplett aufgebraucht ist -> Button ausblenden
+                    if (remainingForThisColor === 0) {
+                        const btnToHide = paletteEl.querySelector(`[data-color-num="${selectedColor}"]`);
+                        if (btnToHide) {
+                            btnToHide.style.display = 'none';
+                        }
+                        selectedColor = null; // Auswahl zurücksetzen
+                    }
+
+                    // Prüfen ob das gesamte Bild fertig ist
+                    if (correctPixelsCount === totalPixels) {
+                        successMsg.style.display = 'block';
+                        successMsg.scrollIntoView({ behavior: 'smooth' });
+                    }
+                } else if (pixel.dataset.filled === "false") {
+                    // Kurzer Wackler bei falscher Farbe
+                    pixel.style.transform = 'scale(0.85)';
+                    setTimeout(() => pixel.style.transform = 'scale(1)', 150);
+                }
+            };
+
+            gridEl.appendChild(pixel);
+        });
+    </script>
+</body>
+</html>
