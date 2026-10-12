@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Malen nach Zahlen für dich ❤️</title>
     <style>
         body {
@@ -10,11 +10,11 @@
             background-color: #f4f6f8;
             color: #333;
             margin: 0;
-            padding: 15px;
+            padding: 15px 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            touch-action: manipulation;
+            /* Erlaubt Standard-Touch-Verhalten außerhalb des Zoom-Bereichs */
         }
 
         h2 {
@@ -27,30 +27,43 @@
         .hint {
             font-size: 0.85rem;
             color: #666;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             text-align: center;
         }
 
-        #game-container {
+        /* Äußerer Container für Zoom & Pan (Verschieben) */
+        #zoom-viewport {
+            width: 100%;
+            max-width: 410px;
+            height: 380px; /* Fester Bereich auf dem Handy zum Scrollen/Zoomen */
             background: white;
-            padding: 10px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             margin-bottom: 15px;
-            max-width: 100%;
-            overflow-x: auto; /* Falls das Raster breiter wird */
+            overflow: auto; /* Aktiviert Scrollen/Verschieben */
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* Das Raster (hier am Beispiel 15x15 für mehr Details) */
+        #game-container {
+            padding: 20px;
+            display: inline-block;
+            transform-origin: center center;
+        }
+
+        /* Das Raster (hier am Beispiel 15x15) */
         .grid {
             display: grid;
-            grid-template-columns: repeat(15, 26px); /* 15 Spalten à 26px */
+            grid-template-columns: repeat(15, 28px); /* 15 Spalten à 28px */
             gap: 2px;
         }
 
         .pixel {
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
             background-color: #e0e0e0;
             border-radius: 3px;
             display: flex;
@@ -61,6 +74,7 @@
             color: #666;
             cursor: pointer;
             user-select: none;
+            -webkit-user-select: none;
             transition: transform 0.1s;
         }
 
@@ -68,23 +82,23 @@
             transform: scale(0.9);
         }
 
-        /* Horizontal scrollbarer Farbpaletten-Bereich */
+        /* Horizontal scrollbarer Farbpaletten-Bereich (bleibt fixiert unten) */
         #palette-container {
             display: flex;
             flex-direction: row;
             overflow-x: auto;
             gap: 10px;
             width: 100%;
-            max-width: 400px;
+            max-width: 410px;
             background: white;
             padding: 12px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             white-space: nowrap;
             -webkit-overflow-scrolling: touch;
+            box-sizing: border-box;
         }
 
-        /* Scrollbar optisch etwas verfeinern */
         #palette-container::-webkit-scrollbar {
             height: 6px;
         }
@@ -94,9 +108,9 @@
         }
 
         .palette-btn {
-            flex: 0 0 auto; /* Verhindert das Schrumpfen der Buttons */
-            width: 40px;
-            height: 40px;
+            flex: 0 0 auto;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             border: 3px solid #ddd;
             cursor: pointer;
@@ -116,95 +130,79 @@
             box-shadow: 0 0 8px rgba(0,0,0,0.3);
         }
 
-        /* Gewinn-Nachricht */
-        #success-message {
+        /* Gewinn-Bereich (Echtes Bild & Text) */
+        #success-container {
             display: none;
-            margin-top: 20px;
-            padding: 15px;
-            background: #d4edda;
-            color: #155724;
-            border-radius: 8px;
+            margin-top: 15px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
             text-align: center;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            max-width: 300px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            max-width: 410px;
+            box-sizing: border-box;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        #success-container img {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
 
     <h2>🎨 Malen nach Zahlen</h2>
-    <div class="hint">Wähle unten eine Farbe (wische zum Scrollen) und tippe auf die passenden Felder!</div>
+    <div class="hint">Zwei Finger zum Zoomen & Verschieben • Unten Farbe wählen</div>
 
-    <div id="game-container">
-        <div id="pixel-grid" class="grid"></div>
+    <!-- Zoom & Scrollbarer Bereich für das Raster -->
+    <div id="zoom-viewport">
+        <div id="game-container">
+            <div id="pixel-grid" class="grid"></div>
+        </div>
     </div>
 
+    <!-- Die Farb-Leiste unten -->
     <div id="palette-container"></div>
 
-    <div id="success-message">
-        🎉 Wundervoll! Du hast es geschafft!<br>
-        <span style="font-size: 0.9rem; font-weight: normal; display: block; margin-top: 5px;">
-            "Ich freue mich auf heute Abend mit dir! ❤️"
-        </span>
+    <!-- Nachspiel: Echtes Bild und persönlicher Text -->
+    <div id="success-container">
+        <h3 style="color: #155724; margin-top: 0;">🎉 Wundervoll! Geschafft!</h3>
+        
+        <!-- PLATZHALTER FÜR DAS ECHTE BILD: 
+             Tausche den Link unten bei src="..." gegen den direkten Link deines Bildes aus (oder lege es als bild.jpg in deinen GitHub-Ordner) -->
+        <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=600&q=80" alt="Dein echtes Bild">
+        
+        <p style="font-size: 0.95rem; color: #444; line-height: 1.4; margin-bottom: 0;">
+            Hier steht deine persönliche Nachricht an ihn, zum Beispiel wie sehr du dich auf den Abend freust oder eine kleine süße Erinnerung an euch beide! ❤️
+        </p>
     </div>
 
     <script>
-        // Farbdefinitionen (Beispielhaft bis Farbe 50 erweiterbar)
+        // Farbdefinitionen (Beispiel 1 bis 50)
         const colors = {
-            1:  { hex: '#1e293b' },
-            2:  { hex: '#334155' },
-            3:  { hex: '#475569' },
-            4:  { hex: '#64748b' },
-            5:  { hex: '#94a3b8' },
-            6:  { hex: '#cbd5e1' },
-            7:  { hex: '#f8fafc' },
-            8:  { hex: '#ef4444' },
-            9:  { hex: '#dc2626' },
-            10: { hex: '#b91c1c' },
-            11: { hex: '#f97316' },
-            12: { hex: '#ea580c' },
-            13: { hex: '#f59e0b' },
-            14: { hex: '#d97706' },
-            15: { hex: '#eab308' },
-            16: { hex: '#ca8a04' },
-            17: { hex: '#84cc16' },
-            18: { hex: '#65a30d' },
-            19: { hex: '#22c55e' },
-            20: { hex: '#16a34a' },
-            21: { hex: '#15803d' },
-            22: { hex: '#10b981' },
-            23: { hex: '#059669' },
-            24: { hex: '#14b8a6' },
-            25: { hex: '#0d9488' },
-            26: { hex: '#06b6d4' },
-            27: { hex: '#0891b2' },
-            28: { hex: '#0ea5e9' },
-            29: { hex: '#0284c7' },
-            30: { hex: '#3b82f6' },
-            31: { hex: '#2563eb' },
-            32: { hex: '#1d4ed8' },
-            33: { hex: '#6366f1' },
-            34: { hex: '#4f46e5' },
-            35: { hex: '#8b5cf6' },
-            36: { hex: '#7c3aed' },
-            37: { hex: '#a855f7' },
-            38: { hex: '#9333ea' },
-            39: { hex: '#d946ef' },
-            40: { hex: '#c026d3' },
-            41: { hex: '#ec4899' },
-            42: { hex: '#db2777' },
-            43: { hex: '#f43f5e' },
-            44: { hex: '#e11d48' },
-            45: { hex: '#78716c' },
-            46: { hex: '#57534e' },
-            47: { hex: '#44403c' },
-            48: { hex: '#292524' },
-            49: { hex: '#1c1917' },
-            50: { hex: '#0f172a' }
+            1:  { hex: '#1e293b' }, 2:  { hex: '#334155' }, 3:  { hex: '#475569' }, 4:  { hex: '#64748b' }, 5:  { hex: '#94a3b8' },
+            6:  { hex: '#cbd5e1' }, 7:  { hex: '#f8fafc' }, 8:  { hex: '#ef4444' }, 9:  { hex: '#dc2626' }, 10: { hex: '#b91c1c' },
+            11: { hex: '#f97316' }, 12: { hex: '#ea580c' }, 13: { hex: '#f59e0b' }, 14: { hex: '#d97706' }, 15: { hex: '#eab308' },
+            16: { hex: '#ca8a04' }, 17: { hex: '#84cc16' }, 18: { hex: '#65a30d' }, 19: { hex: '#22c55e' }, 20: { hex: '#16a34a' },
+            21: { hex: '#15803d' }, 22: { hex: '#10b981' }, 23: { hex: '#059669' }, 24: { hex: '#14b8a6' }, 25: { hex: '#0d9488' },
+            26: { hex: '#06b6d4' }, 27: { hex: '#0891b2' }, 28: { hex: '#0ea5e9' }, 29: { hex: '#0284c7' }, 30: { hex: '#3b82f6' },
+            31: { hex: '#2563eb' }, 32: { hex: '#1d4ed8' }, 33: { hex: '#6366f1' }, 34: { hex: '#4f46e5' }, 35: { hex: '#8b5cf6' },
+            36: { hex: '#7c3aed' }, 37: { hex: '#a855f7' }, 38: { hex: '#9333ea' }, 39: { hex: '#d946ef' }, 40: { hex: '#c026d3' },
+            41: { hex: '#ec4899' }, 42: { hex: '#db2777' }, 43: { hex: '#f43f5e' }, 44: { hex: '#e11d48' }, 45: { hex: '#78716c' },
+            46: { hex: '#57534e' }, 47: { hex: '#44403c' }, 48: { hex: '#292524' }, 49: { hex: '#1c1917' }, 50: { hex: '#0f172a' }
         };
 
-        // Beispiel-Muster (15x15 = 225 Pixel, hier mit Nummern 1 bis 50 gefüllt)
+        // Beispiel-Muster (15x15 Raster)
         const pattern = [
              7,  7,  7,  7,  7,  1,  2,  3,  4,  7,  7,  7,  7,  7,  7,
              7,  7,  7,  7,  1,  8,  9, 10,  2,  4,  7,  7,  7,  7,  7,
@@ -229,7 +227,8 @@
 
         const gridEl = document.getElementById('pixel-grid');
         const paletteEl = document.getElementById('palette-container');
-        const successMsg = document.getElementById('success-message');
+        const successContainer = document.getElementById('success-container');
+        const zoomViewport = document.getElementById('zoom-viewport');
 
         // Palette generieren
         for (let [num, data] of Object.entries(colors)) {
@@ -237,7 +236,7 @@
             btn.className = 'palette-btn';
             btn.style.backgroundColor = data.hex;
             btn.innerText = num;
-            btn.dataset.colorNum = num; // Wichtig, um den Button später zu finden
+            btn.dataset.colorNum = num;
 
             btn.onclick = () => {
                 document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('selected'));
@@ -256,9 +255,7 @@
             pixel.dataset.filled = "false";
 
             pixel.onclick = () => {
-                if (selectedColor === null) {
-                    return;
-                }
+                if (selectedColor === null) return;
 
                 if (selectedColor === targetColor && pixel.dataset.filled === "false") {
                     pixel.style.backgroundColor = colors[targetColor].hex;
@@ -266,27 +263,25 @@
                     pixel.dataset.filled = "true";
                     correctPixelsCount++;
 
-                    // Prüfen, ob noch Pixel mit dieser Farbe übrig sind
+                    // Prüfen, ob Farbe aufgebraucht ist -> Button ausblenden
                     const remainingForThisColor = pattern.filter((val, idx) => {
                         return val === selectedColor && gridEl.children[idx].dataset.filled === "false";
                     }).length;
 
-                    // Wenn Farbe komplett aufgebraucht ist -> Button ausblenden
                     if (remainingForThisColor === 0) {
                         const btnToHide = paletteEl.querySelector(`[data-color-num="${selectedColor}"]`);
-                        if (btnToHide) {
-                            btnToHide.style.display = 'none';
-                        }
-                        selectedColor = null; // Auswahl zurücksetzen
+                        if (btnToHide) btnToHide.style.display = 'none';
+                        selectedColor = null;
                     }
 
-                    // Prüfen ob das gesamte Bild fertig ist
+                    // Spielende erreicht?
                     if (correctPixelsCount === totalPixels) {
-                        successMsg.style.display = 'block';
-                        successMsg.scrollIntoView({ behavior: 'smooth' });
+                        zoomViewport.style.display = 'none'; // Raster ausblenden
+                        paletteEl.style.display = 'none';    // Palette ausblenden
+                        successContainer.style.display = 'block'; // Echtes Bild + Text einblenden
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                 } else if (pixel.dataset.filled === "false") {
-                    // Kurzer Wackler bei falscher Farbe
                     pixel.style.transform = 'scale(0.85)';
                     setTimeout(() => pixel.style.transform = 'scale(1)', 150);
                 }
