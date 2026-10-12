@@ -2,45 +2,71 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, user-scalable=no">
-    <title>1 Malen nach Zahlen für dich ❤️</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Malen nach Zahlen für dich ❤️</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f4f6f8;
             color: #333;
             margin: 0;
-            padding: 15px 10px;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Erlaubt Standard-Touch-Verhalten außerhalb des Zoom-Bereichs */
+            height: 100vh;
+            overflow: hidden; /* Verhindert das Scrollen der Hauptseite */
         }
 
         h2 {
-            margin: 5px 0 5px 0;
-            font-size: 1.2rem;
+            margin: 5px 0 2px 0;
+            font-size: 1.1rem;
             color: #2c3e50;
             text-align: center;
         }
 
         .hint {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: #666;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
             text-align: center;
         }
 
-        /* Äußerer Container für Zoom & Pan (Verschieben) */
+        /* Zoom-Steuerungs-Buttons oben über dem Raster */
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .zoom-btn {
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: #2c3e50;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .zoom-btn:active {
+            background: #e2e8f0;
+        }
+
+        /* Viewport für das Raster (lässt sich jetzt sauber per Button zoomen & verschieben) */
         #zoom-viewport {
             width: 100%;
             max-width: 410px;
-            height: 380px; /* Fester Bereich auf dem Handy zum Scrollen/Zoomen */
+            flex-grow: 1;
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            margin-bottom: 15px;
-            overflow: auto; /* Aktiviert Scrollen/Verschieben */
+            margin-bottom: 10px;
+            overflow: auto;
             position: relative;
             display: flex;
             justify-content: center;
@@ -49,15 +75,16 @@
         }
 
         #game-container {
-            padding: 20px;
+            padding: 60px;
             display: inline-block;
+            transition: transform 0.2s ease;
             transform-origin: center center;
         }
 
-        /* Das Raster (hier am Beispiel 15x15) */
+        /* Das Raster (15x15) */
         .grid {
             display: grid;
-            grid-template-columns: repeat(15, 28px); /* 15 Spalten à 28px */
+            grid-template-columns: repeat(15, 28px);
             gap: 2px;
         }
 
@@ -75,14 +102,13 @@
             cursor: pointer;
             user-select: none;
             -webkit-user-select: none;
-            transition: transform 0.1s;
         }
 
         .pixel:active {
             transform: scale(0.9);
         }
 
-        /* Horizontal scrollbarer Farbpaletten-Bereich (bleibt fixiert unten) */
+        /* Farb-Leiste unten (bleibt dank flex-shrink: 0 fest am Bildschirmrand fixiert) */
         #palette-container {
             display: flex;
             flex-direction: row;
@@ -91,12 +117,12 @@
             width: 100%;
             max-width: 410px;
             background: white;
-            padding: 12px;
+            padding: 10px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             white-space: nowrap;
             -webkit-overflow-scrolling: touch;
-            box-sizing: border-box;
+            flex-shrink: 0;
         }
 
         #palette-container::-webkit-scrollbar {
@@ -109,8 +135,8 @@
 
         .palette-btn {
             flex: 0 0 auto;
-            width: 42px;
-            height: 42px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             border: 3px solid #ddd;
             cursor: pointer;
@@ -121,7 +147,6 @@
             color: #fff;
             text-shadow: 0 1px 2px rgba(0,0,0,0.8);
             font-size: 12px;
-            transition: transform 0.2s, border-color 0.2s;
         }
 
         .palette-btn.selected {
@@ -130,18 +155,18 @@
             box-shadow: 0 0 8px rgba(0,0,0,0.3);
         }
 
-        /* Gewinn-Bereich (Echtes Bild & Text) */
+        /* Gewinn-Bereich */
         #success-container {
             display: none;
-            margin-top: 15px;
+            margin: auto;
             padding: 20px;
             background: white;
             border-radius: 12px;
             text-align: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             max-width: 410px;
+            width: 100%;
             box-sizing: border-box;
-            animation: fadeIn 0.8s ease-in-out;
         }
 
         #success-container img {
@@ -149,46 +174,38 @@
             max-height: 250px;
             object-fit: cover;
             border-radius: 8px;
-            margin-top: 10px;
-            margin-bottom: 10px;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
 
     <h2>🎨 Malen nach Zahlen</h2>
-    <div class="hint">Zwei Finger zum Zoomen & Verschieben • Unten Farbe wählen</div>
+    <div class="hint">Nutze die Buttons zum Zoomen & verschiebe das Raster im Kasten</div>
+    
+    <!-- Zoom-Buttons für präzises Vergrößern nur des Rasters -->
+    <div class="zoom-controls">
+        <button class="zoom-btn" onclick="changeZoom(-0.2)">🔍- Verkleinern</button>
+        <button class="zoom-btn" onclick="changeZoom(0.2)">🔍+ Vergrößern</button>
+    </div>
 
-    <!-- Zoom & Scrollbarer Bereich für das Raster -->
     <div id="zoom-viewport">
         <div id="game-container">
             <div id="pixel-grid" class="grid"></div>
         </div>
     </div>
 
-    <!-- Die Farb-Leiste unten -->
     <div id="palette-container"></div>
 
-    <!-- Nachspiel: Echtes Bild und persönlicher Text -->
     <div id="success-container">
         <h3 style="color: #155724; margin-top: 0;">🎉 Wundervoll! Geschafft!</h3>
-        
-        <!-- PLATZHALTER FÜR DAS ECHTE BILD: 
-             Tausche den Link unten bei src="..." gegen den direkten Link deines Bildes aus (oder lege es als bild.jpg in deinen GitHub-Ordner) -->
         <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=600&q=80" alt="Dein echtes Bild">
-        
         <p style="font-size: 0.95rem; color: #444; line-height: 1.4; margin-bottom: 0;">
-            Hier steht deine persönliche Nachricht an ihn, zum Beispiel wie sehr du dich auf den Abend freust oder eine kleine süße Erinnerung an euch beide! ❤️
+            Hier steht deine persönliche Nachricht an ihn! ❤️
         </p>
     </div>
 
     <script>
-        // Farbdefinitionen (Beispiel 1 bis 50)
         const colors = {
             1:  { hex: '#1e293b' }, 2:  { hex: '#334155' }, 3:  { hex: '#475569' }, 4:  { hex: '#64748b' }, 5:  { hex: '#94a3b8' },
             6:  { hex: '#cbd5e1' }, 7:  { hex: '#f8fafc' }, 8:  { hex: '#ef4444' }, 9:  { hex: '#dc2626' }, 10: { hex: '#b91c1c' },
@@ -202,7 +219,6 @@
             46: { hex: '#57534e' }, 47: { hex: '#44403c' }, 48: { hex: '#292524' }, 49: { hex: '#1c1917' }, 50: { hex: '#0f172a' }
         };
 
-        // Beispiel-Muster (15x15 Raster)
         const pattern = [
              7,  7,  7,  7,  7,  1,  2,  3,  4,  7,  7,  7,  7,  7,  7,
              7,  7,  7,  7,  1,  8,  9, 10,  2,  4,  7,  7,  7,  7,  7,
@@ -223,12 +239,23 @@
 
         let selectedColor = null;
         let correctPixelsCount = 0;
+        let currentZoom = 1;
         const totalPixels = pattern.length;
 
         const gridEl = document.getElementById('pixel-grid');
         const paletteEl = document.getElementById('palette-container');
         const successContainer = document.getElementById('success-container');
         const zoomViewport = document.getElementById('zoom-viewport');
+        const gameContainer = document.getElementById('game-container');
+        const zoomControlsEl = document.querySelector('.zoom-controls');
+
+        // Zoom-Funktion über die Buttons
+        function changeZoom(amount) {
+            currentZoom += amount;
+            if (currentZoom < 0.8) currentZoom = 0.8;
+            if (currentZoom > 3.0) currentZoom = 3.0;
+            gameContainer.style.transform = `scale(${currentZoom})`;
+        }
 
         // Palette generieren
         for (let [num, data] of Object.entries(colors)) {
@@ -263,7 +290,6 @@
                     pixel.dataset.filled = "true";
                     correctPixelsCount++;
 
-                    // Prüfen, ob Farbe aufgebraucht ist -> Button ausblenden
                     const remainingForThisColor = pattern.filter((val, idx) => {
                         return val === selectedColor && gridEl.children[idx].dataset.filled === "false";
                     }).length;
@@ -274,12 +300,13 @@
                         selectedColor = null;
                     }
 
-                    // Spielende erreicht?
                     if (correctPixelsCount === totalPixels) {
-                        zoomViewport.style.display = 'none'; // Raster ausblenden
-                        paletteEl.style.display = 'none';    // Palette ausblenden
-                        successContainer.style.display = 'block'; // Echtes Bild + Text einblenden
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        zoomViewport.style.display = 'none';
+                        paletteEl.style.display = 'none';
+                        zoomControlsEl.style.display = 'none';
+                        document.querySelector('h2').style.display = 'none';
+                        document.querySelector('.hint').style.display = 'none';
+                        successContainer.style.display = 'block';
                     }
                 } else if (pixel.dataset.filled === "false") {
                     pixel.style.transform = 'scale(0.85)';
