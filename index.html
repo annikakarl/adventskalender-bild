@@ -13,94 +13,122 @@
             background-color: #f4f6f8;
             color: #333;
             margin: 0;
-            padding: 10px;
+            padding: 6px 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Passt sich dynamisch an die echte Bildschirmhöhe des iPhones an */
-            min-height: 100vh;
-            min-height: 100dvh; 
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        #welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .welcome-box {
+            background: white;
+            padding: 22px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 300px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .welcome-box h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .welcome-box p {
+            font-size: 0.85rem;
+            color: #555;
+            line-height: 1.4;
+            margin-bottom: 18px;
+        }
+
+        .start-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(231,76,60,0.3);
+        }
+        .start-btn:active {
+            transform: scale(0.95);
         }
 
         h2 {
-            margin: 5px 0 2px 0;
-            font-size: 1.1rem;
+            margin: 0 0 2px 0;
+            font-size: 1rem;
             color: #2c3e50;
             text-align: center;
             flex-shrink: 0;
         }
 
         .hint {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: #666;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             text-align: center;
             flex-shrink: 0;
         }
 
-        /* Zoom-Steuerungs-Buttons */
-        .zoom-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 8px;
-            flex-shrink: 0;
-        }
-
-        .zoom-btn {
-            background: #fff;
-            border: 1px solid #cbd5e1;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 0.85rem;
-            color: #2c3e50;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .zoom-btn:active {
-            background: #e2e8f0;
-        }
-
-        /* Viewport für das Raster nimmt den verfügbaren Platz ein */
         #zoom-viewport {
             width: 100%;
-            max-width: 410px;
-            flex-grow: 1; /* Füllt den freien Raum optimal aus */
+            max-width: 360px;
+            height: 200px; 
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            margin-bottom: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            margin-bottom: 4px;
             overflow: auto;
             position: relative;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            justify-content: flex-start;
+            align-items: flex-start;
             -webkit-overflow-scrolling: touch;
+            flex-shrink: 0;
         }
 
+        /* Gestartet wird hier in der Mitte mit 0.6 Zoom */
         #game-container {
-            padding: 80px;
+            margin: 120px;
             display: inline-block;
-            transition: transform 0.2s ease;
+            transform: scale(0.6);
             transform-origin: center center;
+            transition: transform 0.15s ease;
         }
 
-        /* Das Raster (15x15) */
         .grid {
             display: grid;
-            grid-template-columns: repeat(15, 28px);
+            grid-template-columns: repeat(15, 22px);
             gap: 2px;
         }
 
         .pixel {
-            width: 28px;
-            height: 28px;
+            width: 22px;
+            height: 22px;
             background-color: #e0e0e0;
             border-radius: 3px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 9px;
+            font-size: 7px;
             font-weight: bold;
             color: #666;
             cursor: pointer;
@@ -109,29 +137,50 @@
         }
 
         .pixel:active {
-            transform: scale(0.9);
+            transform: scale(0.85);
         }
 
-        /* Farb-Leiste unten (bleibt garantiert sichtbar und klebt am unteren Rand) */
+        .zoom-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 4px;
+            flex-shrink: 0;
+        }
+
+        .zoom-btn {
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.7rem;
+            color: #2c3e50;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .zoom-btn:active {
+            background: #e2e8f0;
+        }
+
         #palette-container {
             display: flex;
             flex-direction: row;
             overflow-x: auto;
-            gap: 10px;
+            gap: 8px;
             width: 100%;
-            max-width: 410px;
+            max-width: 360px;
             background: white;
-            padding: 10px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            padding: 6px 8px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
             white-space: nowrap;
             -webkit-overflow-scrolling: touch;
-            flex-shrink: 0; /* Verhindert das Quetschen oder Verschwinden */
-            margin-bottom: env(safe-area-inset-bottom); /* Beachtet die iPhone Home-Leiste unten */
+            flex-shrink: 0;
+            margin-bottom: env(safe-area-inset-bottom);
         }
 
         #palette-container::-webkit-scrollbar {
-            height: 6px;
+            height: 4px;
         }
         #palette-container::-webkit-scrollbar-thumb {
             background: #cbd5e1;
@@ -140,10 +189,10 @@
 
         .palette-btn {
             flex: 0 0 auto;
-            width: 40px;
-            height: 40px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
-            border: 3px solid #ddd;
+            border: 2px solid #ddd;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -151,16 +200,15 @@
             font-weight: bold;
             color: #fff;
             text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-            font-size: 12px;
+            font-size: 10px;
         }
 
         .palette-btn.selected {
             border-color: #2c3e50;
             transform: scale(1.1);
-            box-shadow: 0 0 8px rgba(0,0,0,0.3);
+            box-shadow: 0 0 6px rgba(0,0,0,0.3);
         }
 
-        /* Gewinn-Bereich */
         #success-container {
             display: none;
             margin: auto;
@@ -169,29 +217,32 @@
             border-radius: 12px;
             text-align: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            max-width: 410px;
+            max-width: 360px;
             width: 100%;
             box-sizing: border-box;
         }
 
         #success-container img {
             width: 100%;
-            max-height: 250px;
+            max-height: 200px;
             object-fit: cover;
             border-radius: 8px;
-            margin: 10px 0;
+            margin: 8px 0;
         }
     </style>
 </head>
 <body>
 
-    <h2>🎨 Malen nach Zahlen</h2>
-    <div class="hint">Nutze die Buttons zum Zoomen & verschiebe das Raster im Kasten</div>
-    
-    <div class="zoom-controls">
-        <button class="zoom-btn" onclick="changeZoom(-0.2)">🔍- Verkleinern</button>
-        <button class="zoom-btn" onclick="changeZoom(0.2)">🔍+ Vergrößern</button>
+    <div id="welcome-overlay">
+        <div class="welcome-box">
+            <h3>Huhu! ❤️</h3>
+            <p>Hinter diesem Türchen verbirgt sich ein kleines digitales Malen-nach-Zahlen-Bild nur für dich. Fülle alle Felder richtig aus, um das Geheimnis zu lüften!</p>
+            <button class="start-btn" onclick="startGame()">Los geht’s!</button>
+        </div>
     </div>
+
+    <h2>🎨 Malen nach Zahlen</h2>
+    <div class="hint">Farbe unten wählen • Mit Zoom-Buttons vergrößern & im Kasten verschieben</div>
 
     <div id="zoom-viewport">
         <div id="game-container">
@@ -199,12 +250,17 @@
         </div>
     </div>
 
+    <div class="zoom-controls">
+        <button class="zoom-btn" onclick="changeZoom(-0.2)">🔍- Verkleinern</button>
+        <button class="zoom-btn" onclick="changeZoom(0.2)">🔍+ Vergrößern</button>
+    </div>
+
     <div id="palette-container"></div>
 
     <div id="success-container">
         <h3 style="color: #155724; margin-top: 0;">🎉 Wundervoll! Geschafft!</h3>
         <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=600&q=80" alt="Dein echtes Bild">
-        <p style="font-size: 0.95rem; color: #444; line-height: 1.4; margin-bottom: 0;">
+        <p style="font-size: 0.85rem; color: #444; line-height: 1.4; margin-bottom: 0;">
             Hier steht deine persönliche Nachricht an ihn! ❤️
         </p>
     </div>
@@ -243,7 +299,7 @@
 
         let selectedColor = null;
         let correctPixelsCount = 0;
-        let currentZoom = 1;
+        let currentZoom = 0.6; // Startet bei 0.6 (übereinstimmend mit dem CSS)
         const totalPixels = pattern.length;
 
         const gridEl = document.getElementById('pixel-grid');
@@ -252,10 +308,15 @@
         const zoomViewport = document.getElementById('zoom-viewport');
         const gameContainer = document.getElementById('game-container');
         const zoomControlsEl = document.querySelector('.zoom-controls');
+        const welcomeOverlay = document.getElementById('welcome-overlay');
+
+        function startGame() {
+            welcomeOverlay.style.display = 'none';
+        }
 
         function changeZoom(amount) {
             currentZoom += amount;
-            if (currentZoom < 0.8) currentZoom = 0.8;
+            if (currentZoom < 0.5) currentZoom = 0.5;
             if (currentZoom > 3.0) currentZoom = 3.0;
             gameContainer.style.transform = `scale(${currentZoom})`;
         }
@@ -319,6 +380,10 @@
 
             gridEl.appendChild(pixel);
         });
+
+        // Direkt beim Laden in die Mitte des Scrollbereichs springen
+        zoomViewport.scrollTop = (zoomViewport.scrollHeight - zoomViewport.clientHeight) / 2;
+        zoomViewport.scrollLeft = (zoomViewport.scrollWidth - zoomViewport.clientWidth) / 2;
     </script>
 </body>
 </html>
