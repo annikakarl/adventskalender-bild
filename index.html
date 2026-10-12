@@ -17,8 +17,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 100vh;
-            overflow: hidden; /* Verhindert das Scrollen der Hauptseite */
+            /* Passt sich dynamisch an die echte Bildschirmhöhe des iPhones an */
+            min-height: 100vh;
+            min-height: 100dvh; 
         }
 
         h2 {
@@ -26,6 +27,7 @@
             font-size: 1.1rem;
             color: #2c3e50;
             text-align: center;
+            flex-shrink: 0;
         }
 
         .hint {
@@ -33,19 +35,21 @@
             color: #666;
             margin-bottom: 6px;
             text-align: center;
+            flex-shrink: 0;
         }
 
-        /* Zoom-Steuerungs-Buttons oben über dem Raster */
+        /* Zoom-Steuerungs-Buttons */
         .zoom-controls {
             display: flex;
             gap: 10px;
             margin-bottom: 8px;
+            flex-shrink: 0;
         }
 
         .zoom-btn {
             background: #fff;
             border: 1px solid #cbd5e1;
-            padding: 4px 12px;
+            padding: 6px 14px;
             border-radius: 6px;
             font-weight: bold;
             font-size: 0.85rem;
@@ -57,11 +61,11 @@
             background: #e2e8f0;
         }
 
-        /* Viewport für das Raster (lässt sich jetzt sauber per Button zoomen & verschieben) */
+        /* Viewport für das Raster nimmt den verfügbaren Platz ein */
         #zoom-viewport {
             width: 100%;
             max-width: 410px;
-            flex-grow: 1;
+            flex-grow: 1; /* Füllt den freien Raum optimal aus */
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
@@ -75,7 +79,7 @@
         }
 
         #game-container {
-            padding: 60px;
+            padding: 80px;
             display: inline-block;
             transition: transform 0.2s ease;
             transform-origin: center center;
@@ -108,7 +112,7 @@
             transform: scale(0.9);
         }
 
-        /* Farb-Leiste unten (bleibt dank flex-shrink: 0 fest am Bildschirmrand fixiert) */
+        /* Farb-Leiste unten (bleibt garantiert sichtbar und klebt am unteren Rand) */
         #palette-container {
             display: flex;
             flex-direction: row;
@@ -122,7 +126,8 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             white-space: nowrap;
             -webkit-overflow-scrolling: touch;
-            flex-shrink: 0;
+            flex-shrink: 0; /* Verhindert das Quetschen oder Verschwinden */
+            margin-bottom: env(safe-area-inset-bottom); /* Beachtet die iPhone Home-Leiste unten */
         }
 
         #palette-container::-webkit-scrollbar {
@@ -183,7 +188,6 @@
     <h2>🎨 Malen nach Zahlen</h2>
     <div class="hint">Nutze die Buttons zum Zoomen & verschiebe das Raster im Kasten</div>
     
-    <!-- Zoom-Buttons für präzises Vergrößern nur des Rasters -->
     <div class="zoom-controls">
         <button class="zoom-btn" onclick="changeZoom(-0.2)">🔍- Verkleinern</button>
         <button class="zoom-btn" onclick="changeZoom(0.2)">🔍+ Vergrößern</button>
@@ -249,7 +253,6 @@
         const gameContainer = document.getElementById('game-container');
         const zoomControlsEl = document.querySelector('.zoom-controls');
 
-        // Zoom-Funktion über die Buttons
         function changeZoom(amount) {
             currentZoom += amount;
             if (currentZoom < 0.8) currentZoom = 0.8;
