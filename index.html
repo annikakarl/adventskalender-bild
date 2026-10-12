@@ -1,1 +1,222 @@
-print hallo
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Malen nach Zahlen für dich ❤️</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            touch-action: manipulation;
+        }
+
+        h2 {
+            margin: 5px 0 15px 0;
+            font-size: 1.2rem;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        #game-container {
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        /* Das Raster (Pixel-Größe anpassbar) */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr); /* 10 Pixel breit */
+            gap: 2px;
+        }
+
+        .pixel {
+            width: 30px;
+            height: 30px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s;
+        }
+
+        .pixel:active {
+            transform: scale(0.9);
+        }
+
+        /* Farbpaletten-Bereich */
+        #palette-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            max-width: 320px;
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .palette-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 3px solid #ddd;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            font-size: 14px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .palette-btn.selected {
+            border-color: #2c3e50;
+            transform: scale(1.1);
+            box-shadow: 0 0 8px rgba(0,0,0,0.3);
+        }
+
+        /* Gewinn-Nachricht */
+        #success-message {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            max-width: 300px;
+        }
+
+        .hint {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🎨 Malen nach Zahlen</h2>
+    <div class="hint">Wähle unten eine Farbe und tippe auf die passenden Zahlen!</div>
+
+    <div id="game-container">
+        <div id="pixel-grid" class="grid"></div>
+    </div>
+
+    <div id="palette-container"></div>
+
+    <div id="success-message">
+        🎉 Wundervoll! Du hast es geschafft!<br>
+        <span style="font-size: 0.9rem; font-weight: normal; display: block; margin-top: 5px;">
+            (Hier kannst du deine persönliche Nachricht einfügen, z.B.: "Ich freue mich auf heute Abend mit dir! ❤️")
+        </span>
+    </div>
+
+    <script>
+        // Farbdefinitionen (Nummer -> Hex-Farbcode & Name)
+        const colors = {
+            1: { hex: '#2c3e50', name: 'Dunkelblau/Grau' },
+            2: { hex: '#e74c3c', name: 'Rot' },
+            3: { hex: '#f1c40f', name: 'Gelb' },
+            4: { hex: '#ecf0f1', name: 'Weiß/Hintergrund' },
+            5: { hex: '#27ae60', name: 'Grün' }
+        };
+
+        // Das Bild als 10x10 Raster von Zahlen (Zahl entspricht den Farben oben)
+        // Du kannst dieses Muster ganz einfach nach Belieben anpassen!
+        const pattern = [
+            4, 4, 4, 1, 1, 1, 4, 4, 4, 4,
+            4, 4, 1, 2, 2, 2, 1, 4, 4, 4,
+            4, 1, 2, 2, 3, 2, 2, 1, 4, 4,
+            1, 2, 2, 2, 2, 2, 2, 2, 1, 4,
+            1, 2, 5, 2, 2, 2, 5, 2, 1, 4,
+            1, 2, 2, 2, 2, 2, 2, 2, 1, 4,
+            4, 1, 2, 2, 2, 2, 2, 1, 4, 4,
+            4, 4, 1, 2, 2, 2, 1, 4, 4, 4,
+            4, 4, 4, 1, 1, 1, 4, 4, 4, 4,
+            4, 4, 4, 4, 1, 4, 4, 4, 4, 4
+        ];
+
+        let selectedColor = null;
+        let correctPixelsCount = 0;
+        const totalPixels = pattern.length;
+
+        const gridEl = document.getElementById('pixel-grid');
+        const paletteEl = document.getElementById('palette-container');
+        const successMsg = document.getElementById('success-message');
+
+        // Palette generieren
+        for (let [num, data] of Object.entries(colors)) {
+            const btn = document.createElement('div');
+            btn.className = 'palette-btn';
+            btn.style.backgroundColor = data.hex;
+            btn.innerText = num;
+            btn.onclick = () => {
+                document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedColor = parseInt(num);
+            };
+            paletteEl.appendChild(btn);
+        }
+
+        // Pixel-Grid generieren
+        pattern.forEach((targetColor, index) => {
+            const pixel = document.createElement('div');
+            pixel.className = 'pixel';
+            pixel.innerText = targetColor;
+            pixel.dataset.target = targetColor;
+            pixel.dataset.filled = "false";
+
+            pixel.onclick = () => {
+                if (selectedColor === null) {
+                    alert('Bitte wähle zuerst unten eine Farbe aus!');
+                    return;
+                }
+
+                // Prüfen, ob die gewählte Farbe zur Nummer passt
+                if (selectedColor === targetColor && pixel.dataset.filled === "false") {
+                    pixel.style.backgroundColor = colors[targetColor].hex;
+                    pixel.innerText = ""; // Nummer verschwindet beim Ausfüllen
+                    pixel.dataset.filled = "true";
+                    correctPixelsCount++;
+
+                    // Prüfen ob das Bild komplett ist
+                    if (correctPixelsCount === totalPixels) {
+                        successMsg.style.display = 'block';
+                        successMsg.scrollIntoView({ behavior: 'smooth' });
+                    }
+                } else if (pixel.dataset.filled === "false") {
+                    // Kurzer visueller "Fehler"-Hinweis (z.B. kurzes Aufblitzen oder leichtes Wackeln)
+                    pixel.style.transform = 'scale(0.85)';
+                    setTimeout(() => pixel.style.transform = 'scale(1)', 150);
+                }
+            };
+
+            gridEl.appendChild(pixel);
+        });
+    </script>
+</body>
+</html>
