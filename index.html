@@ -91,7 +91,7 @@
         #zoom-viewport {
             width: 100%;
             max-width: 360px;
-            height: 450px; 
+            height: 400px; 
             background: white;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.06);
@@ -116,7 +116,7 @@
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(15, 22px);
+            grid-template-columns: repeat(2, 22px);
             gap: 2px;
         }
 
@@ -235,14 +235,13 @@
 
     <div id="welcome-overlay">
         <div class="welcome-box">
-            <h3>Huhu! ❤️</h3>
-            <p>Hinter diesem Türchen verbirgt sich ein kleines digitales Malen-nach-Zahlen-Bild nur für dich. Fülle alle Felder richtig aus, um das Geheimnis zu lüften!</p>
+            <h3>Hallo mein Liebling! ❤️</h3>
+            <p>Hinter diesem Türchen verbirgt sich ein kleines digitales Malen-nach-Zahlen-Bild für dich. Fülle alle Felder richtig aus, um das Geheimnis zu lüften!</p>
             <button class="start-btn" onclick="startGame()">Los geht’s!</button>
         </div>
     </div>
 
     <h2>🎨 Malen nach Zahlen</h2>
-    <div class="hint">Farbe unten wählen • Mit Zoom-Buttons vergrößern & im Kasten verschieben</div>
 
     <div id="zoom-viewport">
         <div id="game-container">
@@ -258,10 +257,10 @@
     <div id="palette-container"></div>
 
     <div id="success-container">
-        <h3 style="color: #155724; margin-top: 0;">🎉 Wundervoll! Geschafft!</h3>
+        <h3 style="color: #155724; margin-top: 0;">🎉 Wuhu! Geschafft!</h3>
         <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=600&q=80" alt="Dein echtes Bild">
         <p style="font-size: 0.85rem; color: #444; line-height: 1.4; margin-bottom: 0;">
-            Hier steht deine persönliche Nachricht an ihn! ❤️
+            Na hast du das Bild erkannt? Wenn ich das Bild anschaue wird mir immer ganz warm uns beide so glücklich zu sehen! ❤️
         </p>
     </div>
 
@@ -280,21 +279,8 @@
         };
 
         const pattern = [
-             7,  7,  7,  7,  7,  1,  2,  3,  4,  7,  7,  7,  7,  7,  7,
-             7,  7,  7,  7,  1,  8,  9, 10,  2,  4,  7,  7,  7,  7,  7,
-             7,  7,  7,  1,  8, 11, 12, 13,  9,  3,  4,  7,  7,  7,  7,
-             7,  7,  1,  8, 11, 14, 15, 16, 12, 10,  2,  4,  7,  7,  7,
-             7,  1,  8, 11, 14, 17, 18, 19, 15, 13,  9,  3,  4,  7,  7,
-             7,  2,  9, 12, 15, 18, 20, 21, 19, 16, 14, 10,  2,  4,  7,
-             7,  3, 10, 13, 16, 19, 21, 22, 20, 17, 15, 11,  3,  5,  7,
-             7,  4,  2, 14, 17, 20, 22, 23, 21, 18, 16, 12,  4,  6,  7,
-             7,  7,  4,  3, 18, 21, 23, 24, 22, 19, 17, 13,  5,  7,  7,
-             7,  7,  7,  4,  3, 22, 24, 25, 23, 20, 18, 14,  6,  7,  7,
-             7,  7,  7,  7,  4,  3, 25, 26, 24, 21, 19, 15,  7,  7,  7,
-             7,  7,  7,  7,  7,  4,  3, 27, 25, 22, 20, 16,  7,  7,  7,
-             7,  7,  7,  7,  7,  7,  4,  3, 26, 23, 21, 17,  7,  7,  7,
-             7,  7,  7,  7,  7,  7,  7,  4,  3, 24, 22, 18,  7,  7,  7,
-             7,  7,  7,  7,  7,  7,  7,  7,  4,  3, 23, 19,  7,  7,  7
+             7,  7, 
+             7,  7, 
         ];
 
         let selectedColor = null;
